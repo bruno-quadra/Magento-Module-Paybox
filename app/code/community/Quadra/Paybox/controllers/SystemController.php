@@ -477,6 +477,9 @@ class Quadra_Paybox_SystemController extends Mage_Core_Controller_Front_Action
                     ->addObject($invoice)
                     ->addObject($invoice->getOrder())
                     ->save();
+            if($invoice){
+                $invoice->sendEmail();
+            }
             return true;
         }
         return false;
