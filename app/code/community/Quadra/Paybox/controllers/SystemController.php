@@ -477,11 +477,17 @@ class Quadra_Paybox_SystemController extends Mage_Core_Controller_Front_Action
                     ->addObject($invoice)
                     ->addObject($invoice->getOrder())
                     ->save();
-            if($invoice){
+            $order->addStatusToHistory($order->getStatus(), $this->__('Invoice was create successfully'));
+            try {
                 $invoice->sendEmail();
+                $order->addStatusToHistory($order->getStatus(), $this->__('Invoice was sent successfully.'));
+            } catch (Exception $e) {
+                Mage::logException($e);
+                $order->addStatusToHistory($order->getStatus(), $this->__('Unable to send the invoice email.'));
             }
             return true;
         }
+        $order->addStatusToHistory($order->getStatus(), $this->__('Cann\'t create invoice'));
         return false;
     }
 
@@ -604,11 +610,7 @@ class Quadra_Paybox_SystemController extends Mage_Core_Controller_Front_Action
 
                 // Faut-il créer la facture
                 if ($model->getConfigData('invoice_create')) {
-                    if ($this->_createInvoice($order)) {
-                        $order->addStatusToHistory($order->getStatus(), $this->__('Invoice was create successfully'));
-                    } else {
-                        $order->addStatusToHistory($order->getStatus(), $this->__('Cann\'t create invoice'));
-                    }
+                    $this->_createInvoice($order);
                 }
             }
 
